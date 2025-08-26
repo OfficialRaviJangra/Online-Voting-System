@@ -8,7 +8,7 @@ export interface ICandidate extends Document {
     manifesto: string;
 }
 
-const CandidateSchema: Schema = new Schema({
+const CandidateSchema: Schema = new Schema<ICandidate>({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     party: { type: String, required: true },
