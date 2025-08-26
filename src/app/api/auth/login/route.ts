@@ -1,6 +1,6 @@
-import { createToken } from "@/app/helpers/token.helper";
-import connectDB from "@/app/lib/db";
-import User from "@/app/models/User";
+import { createToken } from "@/helpers/token.helper";
+import connectDB from "@/lib/db";
+import User from "@/models/User";
 import bcrypt from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
 
