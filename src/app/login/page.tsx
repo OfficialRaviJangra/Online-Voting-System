@@ -3,11 +3,13 @@ import axios from 'axios'
 import Link from 'next/link'
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
+
 const LoginPage = () => {
     const [user, setUser] = useState({
         email: "",
         password: ""
     })
+
     const [loading, setLoading] = useState(false)
     const router = useRouter();
 
@@ -18,6 +20,7 @@ const LoginPage = () => {
             const response = await axios.post("/api/auth/login", user);
 
             if (response.status === 200) {
+                localStorage.setItem("accessToken", response.data.accessToken)
                 router.push("/dashboard")
             }
         } catch (error) {
@@ -27,7 +30,6 @@ const LoginPage = () => {
         } finally {
             setLoading(false)
         }
-
     }
     return (
         <div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">

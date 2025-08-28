@@ -1,4 +1,4 @@
-import mongoose, {Schema, Document} from "mongoose";
+import mongoose, {Schema, Document,models} from "mongoose";
 
 export interface IVote extends Document {
     candidate: mongoose.Types.ObjectId;
@@ -12,6 +12,6 @@ const VoteSchema: Schema = new Schema({
     timestamp: { type: Date, default: Date.now }
 });
 
-const Vote = mongoose.model<IVote>('Vote', VoteSchema);
+const Vote = models.Vote || mongoose.model<IVote>('Vote', VoteSchema);
 
 export default Vote;
