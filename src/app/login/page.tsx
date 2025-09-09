@@ -1,7 +1,7 @@
 "use client"
 import axios from 'axios'
 import Link from 'next/link'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 const LoginPage = () => {
@@ -18,10 +18,17 @@ const LoginPage = () => {
         setLoading(true)
         try {
             const response = await axios.post("/api/auth/login", user);
-
+            const data = response.data;
             if (response.status === 200) {
-                localStorage.setItem("accessToken", response.data.accessToken)
-                router.push("/dashboard")
+                if (data.user.role === "admin") {
+                    router.push("/admin")
+                    router.refresh();
+                }
+                else if (data.user.role === "voter") {
+                    localStorage.setItem('accessToken', data.user.accessToken)
+                    router.push("/dashboard")
+                    router.refresh();
+                }
             }
         } catch (error) {
             if (axios.isAxiosError(error)) {
@@ -91,6 +98,7 @@ const LoginPage = () => {
                         <button
                             type="submit"
                             className="flex w-full justify-center rounded-md bg-indigo-500 px-3 py-1.5 text-sm/6 font-semibold text-white hover:bg-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 cursor-pointer"
+                            disabled={loading}
                         >
                             Sign in
                         </button>

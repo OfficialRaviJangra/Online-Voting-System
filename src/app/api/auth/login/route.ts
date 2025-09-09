@@ -16,28 +16,33 @@ export async function POST(request : NextRequest){
         if (!user) {
             return NextResponse.json({error : "User not found"}, {status : 401})
         }
-        
+
         const validPassword = await bcrypt.compare(password, user.password)
         if (!validPassword) {
             return NextResponse.json({error : "Password is incorrect"}, {status : 401})
         }
 
          // Create token
-        const {accessToken} = createToken(user._id);
+        const {accessToken} = createToken(user._id, user.role);
         user.accessToken = accessToken
         await user.save({ validateBeforeSave: false });
 
         const response = NextResponse.json({
             message: "Login successful",
             success: true,
-            accessToken, 
+            user: {
+                role : user.role,
+                accessToken : accessToken
+            }, 
         }, { status: 200 });
-        
 
+        
         response.cookies.set("accessToken", accessToken, {
             httpOnly : true,
-            secure : true
-        })
+            secure : true,
+            path : "/",
+        });
+
         return response;
     } catch (error) {
         if (error instanceof Error) {
@@ -45,5 +50,4 @@ export async function POST(request : NextRequest){
         }
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
-
 }
