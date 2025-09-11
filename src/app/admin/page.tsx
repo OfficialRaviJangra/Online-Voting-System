@@ -1,19 +1,46 @@
 "use client"
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
-import React from 'react'
+import React, { useState } from 'react'
 const Admin = () => {
     const router = useRouter();
 
+    const [candidates, setCandidates] = useState({
+        name: '',
+        email: '',
+        party: '',
+        manifesto: ''
+    });
+    console.log(candidates)
     const handleLogout = async () => {
         const response = await axios.post('/api/auth/logout');
         console.log(response.data.message);
         router.push("/login");
     }
 
-    // const handleClick = async () => {
-    //     alert("Add Candidate button clicked");
-    // }
+    const handleClick = async () => {
+        const modal = document.getElementById("my_modal_1") as HTMLDialogElement;
+        if (modal) {
+            modal.showModal();
+        }
+    }
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const response = await axios.post("/api/candidates", candidates);
+        console.log(response.data);
+        const modal = document.getElementById("my_modal_1") as HTMLDialogElement;
+        if (modal) {
+            modal.close();
+        }
+        setCandidates({
+            name: '',
+            email: '',
+            party: '',
+            manifesto: ''
+        });
+        router.refresh();
+    }
 
     return (
         <section>
@@ -27,59 +54,10 @@ const Admin = () => {
                         <button
                             type="button"
                             className="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
-                            data-modal-target="authentication-modal"
-                            data-modal-toggle="authentication-modal"
-                        // onClick={handleClick}
+                            onClick={handleClick}
                         >
                             Add Candidate
                         </button>
-
-                        <div id="authentication-modal" tabIndex={-1} aria-hidden="true" className="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-                            <div className="relative p-4 w-full max-w-md max-h-full">
-                                {/* <!-- Modal content --> */}
-                                <div className="relative bg-white rounded-lg shadow-sm dark:bg-gray-700">
-                                    {/* <!-- Modal header --> */}
-                                    <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-gray-200">
-                                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                                            Sign in to our platform
-                                        </h3>
-                                        <button type="button" className="end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="authentication-modal">
-                                            <svg className="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                                                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                                            </svg>
-                                            <span className="sr-only">Close modal</span>
-                                        </button>
-                                    </div>
-                                    {/* Modal body */}
-                                    <div className="p-4 md:p-5">
-                                        <form className="space-y-4" action="#">
-                                            <div>
-                                                <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your email</label>
-                                                <input type="email" name="email" id="email" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="name@company.com" required />
-                                            </div>
-                                            <div>
-                                                <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your password</label>
-                                                <input type="password" name="password" id="password" placeholder="••••••••" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required />
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <div className="flex items-start">
-                                                    <div className="flex items-center h-5">
-                                                        <input id="remember" type="checkbox" value="" className="w-4 h-4 border border-gray-300 rounded-sm bg-gray-50 focus:ring-3 focus:ring-blue-300 dark:bg-gray-600 dark:border-gray-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800" required />
-                                                    </div>
-                                                    <label htmlFor="remember" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Remember me</label>
-                                                </div>
-                                                <a href="#" className="text-sm text-blue-700 hover:underline dark:text-blue-500">Lost Password?</a>
-                                            </div>
-                                            <button type="submit" className="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Login to your account</button>
-                                            <div className="text-sm font-medium text-gray-500 dark:text-gray-300">
-                                                Not registered? <a href="#" className="text-blue-700 hover:underline dark:text-blue-500">Create account</a>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                         <button
                             type="button"
                             className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
@@ -90,8 +68,47 @@ const Admin = () => {
                     </div>
                 </div>
             </nav>
-
-
+            {/* Modal */}
+            <dialog id="my_modal_1" className="modal">
+                <div className="modal-box">
+                    {/* <!-- Modal header --> */}
+                    <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-gray-200">
+                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                            Add Candidate
+                        </h3>
+                    </div>
+                    {/* <!-- Modal body --> */}
+                    <div className="p-4 md:p-2">
+                        <form className="space-y-4" onSubmit={handleSubmit}>
+                            <div>
+                                <label htmlFor="name" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Name</label>
+                                <input type="text" name="name" id="name" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="John Doe" value={candidates.name} onChange={e => setCandidates({ ...candidates, name: e.target.value })} required />
+                            </div>
+                            <div>
+                                <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Email</label>
+                                <input type="email" name="email" id="email" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="name@company.com" value={candidates.email} onChange={e => setCandidates({ ...candidates, email: e.target.value })} required />
+                            </div>
+                            <div>
+                                <label htmlFor="political-party" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Political Party</label>
+                                <input type="text" name="political-party" id="political-party" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="Political Party" value={candidates.party} onChange={e => setCandidates({ ...candidates, party: e.target.value })} required />
+                            </div>
+                            <div>
+                                <label htmlFor="userParagraph" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Enter your manifesto:</label>
+                                <textarea id="userParagraph" name="userParagraph" rows={5} cols={50} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" value={candidates.manifesto} onChange={e => setCandidates({ ...candidates, manifesto: e.target.value })} required></textarea>
+                            </div>
+                            <button type="submit" className="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                                Add candidate
+                            </button>
+                        </form>
+                        <div className="modal-action">
+                            <form method="dialog">
+                                {/* if there is a button in form, it will close the modal */}
+                                <button className="btn">Close</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </dialog>
         </section>
     )
 }
