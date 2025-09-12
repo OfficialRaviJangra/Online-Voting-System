@@ -38,9 +38,30 @@ export async function POST(request: NextRequest){
         const candidate = new Candidate({name, email, party, manifesto});
         await candidate.save();
     
-        return new NextResponse("Candidate created successfully", { status: 201 });
+        return NextResponse.json(candidate, { status: 201 });
 
 
+    } catch (error) {
+        if (error instanceof Error) {
+            return NextResponse.json({error : error.message}, {status : 500})
+        }
+        return NextResponse.json({error : "Internal Server Error"},{status : 500})
+    }
+}
+
+export async function DELETE(request: NextRequest){
+    const {id} = await request.json();
+
+    try {
+        await connectDB();
+
+        const deletedCandidate = await Candidate.findOneAndDelete({_id: id});
+
+        if (!deletedCandidate) {
+            return new NextResponse("Candidate not found", { status: 404 });
+        }
+
+        return new NextResponse("Candidate deleted successfully", { status: 200 });
     } catch (error) {
         if (error instanceof Error) {
             return NextResponse.json({error : error.message}, {status : 500})
