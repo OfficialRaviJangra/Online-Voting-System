@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react'
 const Admin = () => {
     const router = useRouter();
+    const [name, setName] = useState(false);
+    const [editingId, setEditingId] = useState<string | null>(null);
     const [candidates, setCandidates] = useState([] as any[]);
     const [candidate, setCandidate] = useState({
         name: '',
@@ -53,7 +55,6 @@ const Admin = () => {
         const fetchData = async () => {
             try {
                 const response = await axios.get('/api/candidates');
-                console.log(response.data);
                 setCandidates(response.data);
             } catch (error) {
                 console.error("Error fetching candidates:", error);
@@ -70,12 +71,53 @@ const Admin = () => {
     }
 
     const handleClick = async () => {
+        setName(false);
+        const modal = document.getElementById("my_modal_1") as HTMLDialogElement;
+        if (modal) {
+            modal.showModal();
+        }
+    }
+    const handleClick2 = async (candidate: any) => {
+        setName(true);
+        setEditingId(candidate._id);
+        setCandidate({
+            name: candidate.name,
+            email: candidate.email,
+            party: candidate.party,
+            manifesto: candidate.manifesto
+        })
         const modal = document.getElementById("my_modal_1") as HTMLDialogElement;
         if (modal) {
             modal.showModal();
         }
     }
 
+    const handleUpdate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingId) return;
+        try {
+            const response = await axios.put("/api/candidates", {
+                id: editingId,
+                body: { ...candidate }
+            });
+            console.log(response.data);
+            const updatedCandidate = response.data;
+            setCandidates(prev => prev.map(cand => cand._id === updatedCandidate._id ? updatedCandidate : cand));
+            setEditingId(null);
+            setCandidate({
+                name: '',
+                email: '',
+                party: '',
+                manifesto: ''
+            });
+            const modal = document.getElementById("my_modal_1") as HTMLDialogElement;
+            if (modal) {
+                modal.close();
+            }
+        } catch (error) {
+            console.error("Error updating candidate:", error);
+        }
+    }
     return (
         <section className='bg-black'>
             <nav className="bg-white border-gray-200 dark:bg-gray-900">
@@ -115,12 +157,12 @@ const Admin = () => {
                     {/* <!-- Modal header --> */}
                     <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-gray-200">
                         <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                            Add Candidate
+                            {name ? "Update" : "Add"} Candidate
                         </h3>
                     </div>
                     {/* <!-- Modal body --> */}
                     <div className="p-4 md:p-2">
-                        <form className="space-y-4" onSubmit={handleSubmit}>
+                        <form className="space-y-4" onSubmit={name ? handleUpdate : handleSubmit}>
                             <div>
                                 <label htmlFor="name" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Name</label>
                                 <input type="text" name="name" id="name" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="John Doe" value={candidate.name} onChange={e => setCandidate({ ...candidate, name: e.target.value })} required />
@@ -138,7 +180,7 @@ const Admin = () => {
                                 <textarea id="userParagraph" name="userParagraph" rows={5} cols={50} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" value={candidate.manifesto} onChange={e => setCandidate({ ...candidate, manifesto: e.target.value })} required></textarea>
                             </div>
                             <button type="submit" className="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                                Add candidate
+                                {name ? "Update" : "Add"} candidate
                             </button>
                         </form>
                         <div className="modal-action">
@@ -159,12 +201,21 @@ const Admin = () => {
                             <p className="text-sm text-gray-600">{candidate.email}</p>
                             <p className="text-sm text-gray-600">{candidate.party}</p>
                             <p className="text-sm text-gray-600">{candidate.manifesto}</p>
-                            <button
-                                onClick={() => handleDelete(candidate._id)}
-                                className='bg-red-500 text-white px-2 py-1 rounded mt-2 cursor-pointer hover:bg-red-600'
-                            >
-                                delete
-                            </button>
+                            <div className='flex space-x-2'>
+                                <button
+                                    onClick={() => handleDelete(candidate._id)}
+                                    className='bg-red-500 text-white px-2 py-1 rounded mt-2 cursor-pointer hover:bg-red-600'
+                                >
+                                    delete
+                                </button>
+                                <button
+                                    onClick={() => handleClick2(candidate)}
+                                    className='bg-blue-500 text-white px-2 py-1 rounded mt-2 cursor-pointer hover:bg-blue-600'
+                                >
+                                    update
+                                </button>
+
+                            </div>
                         </li>
                     ))}
                 </ul>

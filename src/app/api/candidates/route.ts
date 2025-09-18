@@ -69,3 +69,21 @@ export async function DELETE(request: NextRequest){
         return NextResponse.json({error : "Internal Server Error"},{status : 500})
     }
 }
+
+export async function PUT(request: NextRequest){
+    const {id, body} = await request.json();
+
+    try {
+        await connectDB();
+        const updatedCandidate = await Candidate.findOneAndUpdate({_id: id}, body, {new: true});
+
+        if (!updatedCandidate) {
+            return new NextResponse("Candidate not found", { status: 404 });
+        }
+        return NextResponse.json(updatedCandidate, { status: 200 });
+    } catch (error) {
+        if (error instanceof Error) {
+            return NextResponse.json({error : error.message}, {status : 500})
+        }
+    }
+}
