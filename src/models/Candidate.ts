@@ -4,7 +4,7 @@ export interface ICandidate extends Document {
     name: string;
     email: string;
     party: string;
-    votes: Number;
+    votes: number;
     manifesto: string;
 }
 

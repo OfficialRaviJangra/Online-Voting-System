@@ -4,6 +4,12 @@ import Vote from "@/models/Vote";
 import Candidate from "@/models/Candidate";
 import { verifyToken } from "@/helpers/token.helper";
 
+type JwtPayload = {
+  id : string;
+  role : string;
+}
+
+
 export async function POST(req: NextRequest) {
   try {
     await connectDB();
@@ -20,12 +26,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const decoded = verifyToken(token);
+    const decoded = verifyToken(token) as JwtPayload | null;
     if (!decoded) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-   const voterId = (decoded as any).id;
+   const voterId = decoded.id;
 
     // Check if voter already voted
     const existingVote = await Vote.findOne({ voter: voterId });
@@ -55,8 +61,11 @@ export async function POST(req: NextRequest) {
     });
 
     return response;
-  } catch (err: any) {
-    console.error("Vote error:", err.message);
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      console.error("Vote error:", err.message);
+      return NextResponse.json({error : err.message}, {status : 500})
+    }
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

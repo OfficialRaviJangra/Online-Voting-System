@@ -2,12 +2,21 @@
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react'
+
+type Candidate = {
+    _id: string;
+    name: string;
+    email: string;
+    party: string;
+    manifesto: string;
+}
+
 const Admin = () => {
     const router = useRouter();
     const [name, setName] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
-    const [candidates, setCandidates] = useState([] as any[]);
-    const [candidate, setCandidate] = useState({
+    const [candidates, setCandidates] = useState<Candidate[]>([]);
+    const [candidate, setCandidate] = useState<Omit<Candidate, "_id">>({
         name: '',
         email: '',
         party: '',
@@ -77,7 +86,7 @@ const Admin = () => {
             modal.showModal();
         }
     }
-    const handleClick2 = async (candidate: any) => {
+    const handleClick2 = async (candidate: Candidate) => {
         setName(true);
         setEditingId(candidate._id);
         setCandidate({
@@ -195,7 +204,7 @@ const Admin = () => {
             <div className='flex flex-col'>
                 <h2 className="text-2xl font-bold mb-4">Candidates</h2>
                 <ul className="flex justify-center space-x-4">
-                    {candidates.map(candidate => (
+                    {candidates.map((candidate: Candidate) => (
                         <li key={candidate._id} className="p-4 border border-gray-200 rounded-lg">
                             <h3 className="text-lg font-semibold">{candidate.name}</h3>
                             <p className="text-sm text-gray-600">{candidate.email}</p>

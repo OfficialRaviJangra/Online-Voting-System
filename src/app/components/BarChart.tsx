@@ -1,12 +1,22 @@
-"use client"; // needed if you’re using Next.js 13+ app directory
+"use client";
 
 import { Bar } from "react-chartjs-2";
-import "@/lib/chartConfig"; // ensures Chart.js is registered
+import "@/lib/chartConfig";
 import { useState, useEffect } from "react";
 import axios from "axios";
 
+type chartData = {
+    labels: string[];
+    datasets: {
+        label: string;
+        data: number[];
+        backgroundColor: string;
+    }[]
+}
+
+
 export default function BarChart() {
-    const [chartData, setChartData] = useState<any>({
+    const [chartData, setChartData] = useState<chartData>({
         labels: [],
         datasets: []
     })
@@ -14,7 +24,6 @@ export default function BarChart() {
     useEffect(() => {
         async function fetchData() {
             const response = await axios.get("/api/votes/results");
-            console.log(response.data.results[0])
             const data = response.data.results[0]
             setChartData({
                 labels: data.labels,
