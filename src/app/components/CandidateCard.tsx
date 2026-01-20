@@ -8,6 +8,7 @@ interface Candidate {
     email: string;
     party: string;
     manifesto: string;
+    avatarUrl: string
     _id: Key | null | undefined;
 }
 
@@ -17,7 +18,7 @@ interface CandidateCardProps {
 
 const CandidateCard = ({ candidate }: CandidateCardProps) => {
     const router = useRouter();
-    const { name, email, party, manifesto, _id } = candidate
+    const { name, email, party, manifesto, _id, avatarUrl } = candidate
     const [message, setMessage] = useState("")
     const handleClick = async (id: Key | null | undefined) => {
         setMessage("");
@@ -30,7 +31,6 @@ const CandidateCard = ({ candidate }: CandidateCardProps) => {
             const res = await axios.post("/api/votes", { "candidateId": id }, {
                 headers: { Authorization: `Bearer ${token}` }
             })
-
             //Redirect to login page after successfull vote cast
             router.push("/login")
             router.refresh()
@@ -39,7 +39,13 @@ const CandidateCard = ({ candidate }: CandidateCardProps) => {
 
 
         } catch (err: unknown) {
-            if (err instanceof Error) {
+            if (axios.isAxiosError(err)) {
+                if (err.response?.status == 400) {
+                    alert(err.response.data.message || "You can only vote once.")
+                    setMessage(err.response.data.message || "You can only vote once.")
+                }
+            }
+            else if (err instanceof Error) {
                 setMessage("❌ " + (err.message || "Vote failed"));
             } else {
                 setMessage("Something went wrong.");
@@ -47,18 +53,33 @@ const CandidateCard = ({ candidate }: CandidateCardProps) => {
         }
     }
     return (
-        <div className="block max-w-sm p-6 border border-gray-200 rounded-lg shadow-sm bg-gray-800 dark:border-gray-700">
-            <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Name : {name}</h5>
-            <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Email : {email}</h5>
-            <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white uppercase">Party : {party}</h5>
-            <p className="mb-2 font-normal text-gray-700 dark:text-gray-400"> Manifesto : {manifesto}</p>
-            <button
-                type="button"
-                className="py-2.5 px-5 me-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
-                onClick={() => { handleClick(_id) }}
-            >Vote
-            </button>
+        <div className="flex flex-col bg-white shadow-sm border border-slate-200 rounded-lg my-6 w-96">
+            <div className="m-2.5 overflow-hidden rounded-md h-80 flex justify-center items-center">
+                <img className="w-full h-full object-cover" src={avatarUrl} alt="profile-picture" />
+            </div>
+            <div className="p-6 text-center">
+                <h3 className="mb-1 text-xl font-semibold text-slate-800">
+                    {name}
+                </h3>
+                <p
+                    className="text-sm font-semibold text-slate-500 uppercase">
+                    {party}
+                </p>
+                <p className="text-base text-slate-600 mt-4 font-light ">
+                    {email}
+                </p>
+            </div>
+            <div className="flex justify-center p-6 pt-2 gap-7">
+                <button
+                    className="min-w-32  rounded-md bg-slate-800 py-2 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none cursor-pointer"
+                    type="button"
+                    onClick={() => { handleClick(_id) }}
+                >
+                    Vote
+                </button>
+            </div>
         </div>
+
     )
 }
 export default CandidateCard

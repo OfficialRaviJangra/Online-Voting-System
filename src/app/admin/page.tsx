@@ -2,12 +2,14 @@
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react'
+import Image from "next/image"
 
 type Candidate = {
     _id: string;
     name: string;
     email: string;
     party: string;
+    avatarUrl: string;
     manifesto: string;
 }
 
@@ -16,10 +18,12 @@ const Admin = () => {
     const [name, setName] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [candidates, setCandidates] = useState<Candidate[]>([]);
+    const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [candidate, setCandidate] = useState<Omit<Candidate, "_id">>({
         name: '',
         email: '',
         party: '',
+        avatarUrl: '',
         manifesto: ''
     });
 
@@ -38,7 +42,19 @@ const Admin = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const response = await axios.post("/api/candidates", candidate);
+            const formData = new FormData();
+            formData.append("name", candidate.name);
+            formData.append("email", candidate.email);
+            formData.append("party", candidate.party);
+            formData.append("manifesto", candidate.manifesto);
+            if (avatarFile) {
+                formData.append("avatar", avatarFile);
+            }
+            const response = await axios.post("/api/candidates", formData, {
+                headers: {
+                    "Content-Type": 'multipart/form-data'
+                }
+            });
             const newCandidate = response.data;
             console.log(newCandidate)
             setCandidates(prevCandidates => [...prevCandidates, newCandidate]);
@@ -52,6 +68,7 @@ const Admin = () => {
                 name: '',
                 email: '',
                 party: '',
+                avatarUrl: '',
                 manifesto: ''
             });
         } catch (error) {
@@ -93,6 +110,7 @@ const Admin = () => {
             name: candidate.name,
             email: candidate.email,
             party: candidate.party,
+            avatarUrl: candidate.avatarUrl,
             manifesto: candidate.manifesto
         })
         const modal = document.getElementById("my_modal_1") as HTMLDialogElement;
@@ -117,6 +135,7 @@ const Admin = () => {
                 name: '',
                 email: '',
                 party: '',
+                avatarUrl: '',
                 manifesto: ''
             });
             const modal = document.getElementById("my_modal_1") as HTMLDialogElement;
@@ -128,7 +147,7 @@ const Admin = () => {
         }
     }
     return (
-        <section className='bg-black'>
+        <section className='w-full min-h-scrreen'>
             <nav className="bg-white border-gray-200 dark:bg-gray-900">
                 <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
                     <a href="https://flowbite.com/" className="flex items-center space-x-3 rtl:space-x-reverse">
@@ -180,9 +199,22 @@ const Admin = () => {
                                 <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Email</label>
                                 <input type="email" name="email" id="email" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="name@company.com" value={candidate.email} onChange={e => setCandidate({ ...candidate, email: e.target.value })} required />
                             </div>
-                            <div>
-                                <label htmlFor="political-party" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Political Party</label>
-                                <input type="text" name="political-party" id="political-party" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="Political Party" value={candidate.party} onChange={e => setCandidate({ ...candidate, party: e.target.value })} required />
+                            <div className='flex gap-2'>
+                                <div>
+                                    <label htmlFor="political-party" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Political Party</label>
+                                    <input type="text" name="political-party" id="political-party" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="Political Party" value={candidate.party} onChange={e => setCandidate({ ...candidate, party: e.target.value })} required />
+                                </div>
+                                <div>
+                                    <label className='block mb-2 text-sm font-medium text-gray-900 dark:text-white' htmlFor="myfile">Upload Image:</label>
+                                    <input
+                                        className="cursor-pointer bg-gray-50 border border-default-medium text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 focus:border-brand p-2.5 text-gray-900 dark:bg-gray-600 dark:border-gray-500 dark:text-white placeholder:text-black"
+                                        type="file"
+                                        id='myfile'
+                                        accept='image/*'
+                                        name='myfile'
+                                        onChange={e => setAvatarFile(e.target.files?.[0] || null)}
+                                    />
+                                </div>
                             </div>
                             <div>
                                 <label htmlFor="userParagraph" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Enter your manifesto:</label>
@@ -202,28 +234,54 @@ const Admin = () => {
                 </div>
             </dialog>
             <div className='flex flex-col'>
-                <h2 className="text-2xl font-bold mb-4">Candidates</h2>
-                <ul className="flex justify-center space-x-4">
+                <h2 className="text-2xl font-bold mb-4 text-center">Candidates</h2>
+                <ul className="flex flex-col md:flex-row justify-center items-center space-x-4 space-y-4 p-5">
                     {candidates.map((candidate: Candidate) => (
-                        <li key={candidate._id} className="p-4 border border-gray-200 rounded-lg">
-                            <h3 className="text-lg font-semibold">{candidate.name}</h3>
-                            <p className="text-sm text-gray-600">{candidate.email}</p>
-                            <p className="text-sm text-gray-600">{candidate.party}</p>
-                            <p className="text-sm text-gray-600">{candidate.manifesto}</p>
-                            <div className='flex space-x-2'>
-                                <button
-                                    onClick={() => handleDelete(candidate._id)}
-                                    className='bg-red-500 text-white px-2 py-1 rounded mt-2 cursor-pointer hover:bg-red-600'
-                                >
-                                    delete
-                                </button>
-                                <button
-                                    onClick={() => handleClick2(candidate)}
-                                    className='bg-blue-500 text-white px-2 py-1 rounded mt-2 cursor-pointer hover:bg-blue-600'
-                                >
-                                    update
-                                </button>
+                        <li key={candidate._id}>
+                            <div className="max-w-lg bg-white rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden border">
+                                {/* Candidate Image */}
+                                <div className="relative w-full h-56">
+                                    <Image
+                                        src={candidate.avatarUrl}
+                                        alt={`${candidate.name} photo`}
+                                        fill
+                                        className="object-cover"
+                                        priority
+                                    />
+                                </div>
 
+                                {/* Card Content */}
+                                <div className="p-5 space-y-3">
+                                    <h2 className="text-xl font-bold text-gray-800">
+                                        {candidate.name}
+                                    </h2>
+
+                                    <p className="text-sm font-semibold text-indigo-600">
+                                        {candidate.party}
+                                    </p>
+
+                                    <p className="text-sm text-gray-600 break-all">
+                                        📧 {candidate.email}
+                                    </p>
+
+                                    <p className="text-sm text-gray-700 leading-relaxed">
+                                        <span className="font-semibold">Manifesto:</span> {candidate.manifesto}
+                                    </p>
+                                    <div className='flex space-x-2'>
+                                        <button
+                                            onClick={() => handleDelete(candidate._id)}
+                                            className='bg-red-500 text-white px-2 py-1 rounded mt-2 cursor-pointer hover:bg-red-600'
+                                        >
+                                            delete
+                                        </button>
+                                        <button
+                                            onClick={() => handleClick2(candidate)}
+                                            className='bg-blue-500 text-white px-2 py-1 rounded mt-2 cursor-pointer hover:bg-blue-600'
+                                        >
+                                            update
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </li>
                     ))}

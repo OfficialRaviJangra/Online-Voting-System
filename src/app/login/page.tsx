@@ -39,7 +39,7 @@ const LoginPage = () => {
         }
     }
     return (
-        <div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
+        <div className="flex min-h-screen flex-col justify-center px-6 py-12 lg:px-8">
             <div className="sm:mx-auto sm:w-full sm:max-w-sm">
                 <img
                     alt="Your Company"
@@ -48,7 +48,6 @@ const LoginPage = () => {
                 />
                 <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-white">Sign in to your account</h2>
             </div>
-
             <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
                 <form className="space-y-6" onSubmit={handleSubmit}>
                     <div>
@@ -74,11 +73,6 @@ const LoginPage = () => {
                             <label htmlFor="password" className="block text-sm/6 font-medium text-gray-100">
                                 Password
                             </label>
-                            {/* <div className="text-sm">
-                                <a href="#" className="font-semibold text-indigo-400 hover:text-indigo-300">
-                                    Forgot password?
-                                </a>
-                            </div> */}
                         </div>
                         <div className="mt-2">
                             <input

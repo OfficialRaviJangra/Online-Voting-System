@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
       candidate: candidateId,
     });
 
-    // Increment candidate vote count (optional)
+    // Increment candidate vote count
     await Candidate.findByIdAndUpdate(candidateId, { $inc: { votes: 1 } });
 
 

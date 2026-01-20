@@ -1,8 +1,9 @@
 import connectDB from "@/lib/db";
 import Candidate from "@/models/Candidate";
 import { NextRequest, NextResponse } from "next/server";
-
-
+import { uploadFile } from "@/helpers/cloudinary";
+import path from "path";
+import { writeFileSync } from "fs";
 
 export async function GET() {
     try {
@@ -24,8 +25,13 @@ export async function GET() {
 
 
 export async function POST(request: NextRequest){
-    const {name , email, party, manifesto} = await request.json();
-
+    const formData = await request.formData();
+    const name = formData.get("name") as string;
+    const email = formData.get("email") as string;
+    const party = formData.get("party") as string;
+    const manifesto = formData.get("manifesto") as string;
+    const avatarFile = formData.get("avatar") as File;
+    console.log(avatarFile)
     try {
         await connectDB();
 
@@ -34,8 +40,20 @@ export async function POST(request: NextRequest){
         if (existedCandidate) {
             return new NextResponse("Candidate already exists", { status: 400 });
         }
-    
-        const candidate = new Candidate({name, email, party, manifesto});
+        
+        //if avatar is not present
+        if (!avatarFile) {
+            return NextResponse.json({error: "No file provided"}, {status: 400});
+        }
+        const buffer = Buffer.from(await avatarFile.arrayBuffer());
+        //write to temp directory
+        const tempDir = path.join(process.cwd(), "public")
+        const tempFilePath = path.join(tempDir, avatarFile.name);
+        writeFileSync(tempFilePath, buffer);
+
+        const avatarUrl = await uploadFile(tempFilePath);
+        console.log(avatarUrl)
+        const candidate = new Candidate({name, email, party, manifesto, avatarUrl: avatarUrl});
         await candidate.save();
     
         return NextResponse.json(candidate, { status: 201 });

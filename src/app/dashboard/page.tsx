@@ -8,6 +8,7 @@ type Candidate = {
     name: string;
     email: string;
     party: string;
+    avatarUrl: string;
     manifesto: string;
 };
 
