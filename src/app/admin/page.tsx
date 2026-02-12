@@ -123,9 +123,20 @@ const Admin = () => {
         e.preventDefault();
         if (!editingId) return;
         try {
-            const response = await axios.put("/api/candidates", {
-                id: editingId,
-                body: { ...candidate }
+            const formData = new FormData();
+            formData.append("id", editingId)
+            formData.append("name", candidate.name);
+            formData.append("email", candidate.email);
+            formData.append("party", candidate.party);
+            formData.append("manifesto", candidate.manifesto);
+            if (avatarFile) {
+                formData.append("avatar", avatarFile);
+            }
+
+            const response = await axios.put("/api/candidates", formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data"
+                }
             });
             console.log(response.data);
             const updatedCandidate = response.data;

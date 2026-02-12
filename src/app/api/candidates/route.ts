@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { uploadFile } from "@/helpers/cloudinary";
 import path from "path";
 import { writeFileSync } from "fs";
-
+import { ObjectId, Types } from "mongoose";
 export async function GET() {
     try {
         await connectDB();
@@ -31,7 +31,6 @@ export async function POST(request: NextRequest){
     const party = formData.get("party") as string;
     const manifesto = formData.get("manifesto") as string;
     const avatarFile = formData.get("avatar") as File;
-    console.log(avatarFile)
     try {
         await connectDB();
 
@@ -52,7 +51,6 @@ export async function POST(request: NextRequest){
         writeFileSync(tempFilePath, buffer);
 
         const avatarUrl = await uploadFile(tempFilePath);
-        console.log(avatarUrl)
         const candidate = new Candidate({name, email, party, manifesto, avatarUrl: avatarUrl});
         await candidate.save();
     
@@ -89,11 +87,30 @@ export async function DELETE(request: NextRequest){
 }
 
 export async function PUT(request: NextRequest){
-    const {id, body} = await request.json();
+    const formData = await request.formData();
+    const id = formData.get("id") as string;
+    const name = formData.get("name") as string;
+    const email = formData.get("email") as string;
+    const party = formData.get("party") as string;
+    const manifesto = formData.get("manifesto") as string;
+    const avatarFile = formData.get("avatar") as File | null;
 
     try {
+
         await connectDB();
-        const updatedCandidate = await Candidate.findOneAndUpdate({_id: id}, body, {new: true});
+
+        let data : {name? : string, email?: string, party?: string, manifesto?: string, avatarUrl?: string} = {name, email, party, manifesto};
+        // if avatar is present
+        if (avatarFile) {
+            const buffer = Buffer.from(await avatarFile.arrayBuffer());
+            //write to temp directory
+            const tempDir = path.join(process.cwd(), "public");
+            const tempFilePath = path.join(tempDir, avatarFile.name);
+            writeFileSync(tempFilePath, buffer);
+            const avatarUrl = await uploadFile(tempFilePath);
+            data = {...data, avatarUrl};
+        }
+        const updatedCandidate = await Candidate.findByIdAndUpdate(id, data, {new: true});
 
         if (!updatedCandidate) {
             return new NextResponse("Candidate not found", { status: 404 });
