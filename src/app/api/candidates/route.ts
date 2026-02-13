@@ -1,7 +1,7 @@
 import connectDB from "@/lib/db";
 import Candidate from "@/models/Candidate";
 import { NextRequest, NextResponse } from "next/server";
-import { uploadFile } from "@/helpers/cloudinary";
+import { uploadFile, deleteFile } from "@/helpers/cloudinary";
 import path from "path";
 import { writeFileSync } from "fs";
 import { ObjectId, Types } from "mongoose";
@@ -102,6 +102,14 @@ export async function PUT(request: NextRequest){
         let data : {name? : string, email?: string, party?: string, manifesto?: string, avatarUrl?: string} = {name, email, party, manifesto};
         // if avatar is present
         if (avatarFile) {
+            // Get the existing candidate to retrieve old avatar URL
+            const existingCandidate = await Candidate.findById(id);
+            
+            // Delete old avatar from Cloudinary if it exists
+            if (existingCandidate?.avatarUrl) {
+                await deleteFile(existingCandidate.avatarUrl);
+            }
+            
             const buffer = Buffer.from(await avatarFile.arrayBuffer());
             //write to temp directory
             const tempDir = path.join(process.cwd(), "public");
