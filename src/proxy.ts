@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { verifyToken } from "./helpers/token.helper";
 
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const token = request.cookies.get("accessToken")?.value;
   const url = request.nextUrl.pathname;
 
