@@ -1,10 +1,7 @@
 import connectDB from "@/lib/db";
 import Candidate from "@/models/Candidate";
 import { NextRequest, NextResponse } from "next/server";
-import { uploadFile, deleteFile } from "@/helpers/cloudinary";
-import path from "path";
-import { writeFileSync } from "fs";
-import { ObjectId, Types } from "mongoose";
+import { deleteFile, uploadFileFromBuffer } from "@/helpers/cloudinary";
 export async function GET() {
     try {
         await connectDB();
@@ -30,7 +27,7 @@ export async function POST(request: NextRequest){
     const email = formData.get("email") as string;
     const party = formData.get("party") as string;
     const manifesto = formData.get("manifesto") as string;
-    const avatarFile = formData.get("avatar") as File;
+    const avatarFile = formData.get("avatar") as File | null;
     try {
         await connectDB();
 
@@ -45,13 +42,13 @@ export async function POST(request: NextRequest){
             return NextResponse.json({error: "No file provided"}, {status: 400});
         }
         const buffer = Buffer.from(await avatarFile.arrayBuffer());
-        //write to temp directory
-        const tempDir = path.join(process.cwd(), "public")
-        const tempFilePath = path.join(tempDir, avatarFile.name);
-        writeFileSync(tempFilePath, buffer);
-
-        const avatarUrl = await uploadFile(tempFilePath);
-        const candidate = new Candidate({name, email, party, manifesto, avatarUrl: avatarUrl});
+        const avatarUrl = await uploadFileFromBuffer(buffer, avatarFile.name);
+        
+        if (!avatarUrl) {
+            return NextResponse.json({error: "Failed to upload avatar"}, {status: 500});
+        }
+        
+        const candidate = new Candidate({name, email, party, manifesto, avatarUrl});
         await candidate.save();
     
         return NextResponse.json(candidate, { status: 201 });
@@ -111,11 +108,12 @@ export async function PUT(request: NextRequest){
             }
             
             const buffer = Buffer.from(await avatarFile.arrayBuffer());
-            //write to temp directory
-            const tempDir = path.join(process.cwd(), "public");
-            const tempFilePath = path.join(tempDir, avatarFile.name);
-            writeFileSync(tempFilePath, buffer);
-            const avatarUrl = await uploadFile(tempFilePath);
+            const avatarUrl = await uploadFileFromBuffer(buffer, avatarFile.name);
+            
+            if (!avatarUrl) {
+                return NextResponse.json({error: "Failed to upload avatar"}, {status: 500});
+            }
+            
             data = {...data, avatarUrl};
         }
         const updatedCandidate = await Candidate.findByIdAndUpdate(id, data, {new: true});
